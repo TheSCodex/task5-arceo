@@ -161,7 +161,7 @@ function Dashboard() {
             max="1000"
             value={errorRate}
             onChange={(e) =>
-              setErrorRate(Math.min(parseFloat(e.target.value), 10))
+              setErrorRate(Math.min(parseFloat(e.target.value), 1000))
             }
             className="border rounded px-2 py-1"
           />
