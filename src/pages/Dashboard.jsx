@@ -27,7 +27,7 @@ function Dashboard() {
 
   const applyErrors = useCallback(
     (data, errorRate) => {
-      const combinedSeed = combineSeedAndPage(seed, pageNumber);
+      const combinedSeed = combineSeedAndPage(seed, pageNumber, errorRate);
       const rng = createRng(combinedSeed);
 
       const dataWithErrors = data.map((record) => ({
@@ -91,7 +91,8 @@ function Dashboard() {
   useEffect(() => {
     const handleScroll = () => {
       if (dataEndRef.current) {
-        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+        const { scrollTop, scrollHeight, clientHeight } =
+          document.documentElement;
         if (scrollTop + clientHeight >= scrollHeight - 5) {
           setPageNumber((prev) => prev + 1);
         }
@@ -113,8 +114,15 @@ function Dashboard() {
   }, [errorRate, originalData, applyErrors]);
 
   const handleRegionChange = (e) => setRegion(e.target.value);
+
   const handleSliderChange = (e) => setErrorRate(parseFloat(e.target.value));
-  const handleSeedChange = (e) => setSeed(e.target.value);
+
+  const handleSeedChange = (e) => {
+    const newSeed = e.target.value;
+    setSeed(newSeed);
+    setData(applyErrors(originalData, errorRate));
+  };
+
   const handleRandomSeed = () => setSeed(generateRandomSeed());
 
   return (
@@ -142,7 +150,7 @@ function Dashboard() {
             id="error-slider"
             type="range"
             min="0"
-            max="10"
+            max="1000"
             value={errorRate}
             onChange={handleSliderChange}
             className="slider"
@@ -164,7 +172,7 @@ function Dashboard() {
             id="seed-input"
             type="number"
             value={seed}
-            onChange={handleSeedChange}
+            onChange={handleSeedChange} // Correctly handle seed change
             className="border rounded px-2 py-1"
           />
           <button
@@ -215,7 +223,9 @@ function Dashboard() {
             {data.map((item, index) => (
               <tr key={index} className="bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                  {totalCount > 0 ? totalCount - data.length + index + 1 : index + 1}
+                  {totalCount > 0
+                    ? totalCount - data.length + index + 1
+                    : index + 1}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                   {item.identifier}

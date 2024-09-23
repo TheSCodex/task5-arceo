@@ -3,7 +3,10 @@ import seedrandom from "seedrandom";
 import { v4 as uuidv4 } from 'uuid';
 
 export function generateMexicoData(seed, pageNumber) {
-  const rng = seedrandom(`${seed}-${pageNumber}`);
+  const combinedSeed = `${seed}-${pageNumber}`;
+  const rng = seedrandom(combinedSeed);
+
+  faker.seed(rng.int32());
 
   const data = [];
 

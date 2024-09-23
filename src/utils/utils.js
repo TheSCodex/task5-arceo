@@ -1,8 +1,8 @@
 import seedrandom from 'seedrandom';
 
 // Combine seed and page number
-export function combineSeedAndPage(seed, pageNumber) {
-  return `${seed}-${pageNumber}`;
+export function combineSeedAndPage(seed, pageNumber, errorRate) {
+  return `${seed}-${pageNumber}-${errorRate}`;
 }
 
 // Generate a random seed
