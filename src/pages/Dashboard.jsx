@@ -158,7 +158,7 @@ function Dashboard() {
           <input
             type="number"
             min="0"
-            max="10"
+            max="1000"
             value={errorRate}
             onChange={(e) =>
               setErrorRate(Math.min(parseFloat(e.target.value), 10))
