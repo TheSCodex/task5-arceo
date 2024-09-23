@@ -22,6 +22,8 @@ function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const dataEndRef = useRef(null);
+  const prevRegion = useRef(region);
+  const prevSeed = useRef(seed);
 
   const applyErrors = useCallback(
     (data, errorRate) => {
@@ -35,8 +37,7 @@ function Dashboard() {
         phone: injectErrors(record.phone, errorRate, rng),
       }));
 
-      setData((prevData) => [...prevData, ...dataWithErrors]);
-      setTotalCount((prevCount) => prevCount + dataWithErrors.length);
+      return dataWithErrors;
     },
     [pageNumber, seed]
   );
@@ -57,12 +58,26 @@ function Dashboard() {
     const combinedSeed = combineSeedAndPage(seed, pageNumber);
     const generatedData = generator(seed, pageNumber);
 
-    setOriginalData((prevOriginalData) => [
-      ...prevOriginalData,
-      ...generatedData,
-    ]);
-    applyErrors(generatedData, errorRate);
+    // Reset data when region or seed changes
+    if (prevRegion.current !== region || prevSeed.current !== seed) {
+      setOriginalData(generatedData);
+      setData(applyErrors(generatedData, errorRate));
+      setTotalCount(generatedData.length);
+    } else {
+      setOriginalData((prevOriginalData) => [
+        ...prevOriginalData,
+        ...generatedData,
+      ]);
+      setData((prevData) => [
+        ...prevData,
+        ...applyErrors(generatedData, errorRate),
+      ]);
+      setTotalCount((prevCount) => prevCount + generatedData.length);
+    }
+
     setLoading(false);
+    prevRegion.current = region;
+    prevSeed.current = seed;
   }, [region, seed, pageNumber, applyErrors, errorRate, loading]);
 
   useEffect(() => {
@@ -70,10 +85,13 @@ function Dashboard() {
   }, [handleGenerateData]);
 
   useEffect(() => {
+    setPageNumber(1);
+  }, [region, seed]);
+
+  useEffect(() => {
     const handleScroll = () => {
       if (dataEndRef.current) {
-        const { scrollTop, scrollHeight, clientHeight } =
-          document.documentElement;
+        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
         if (scrollTop + clientHeight >= scrollHeight - 5) {
           setPageNumber((prev) => prev + 1);
         }
@@ -84,6 +102,16 @@ function Dashboard() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (pageNumber > 1) {
+      handleGenerateData();
+    }
+  }, [pageNumber, handleGenerateData]);
+
+  useEffect(() => {
+    setData(applyErrors(originalData, errorRate));
+  }, [errorRate, originalData, applyErrors]);
+
   const handleRegionChange = (e) => setRegion(e.target.value);
   const handleSliderChange = (e) => setErrorRate(parseFloat(e.target.value));
   const handleSeedChange = (e) => setSeed(e.target.value);
@@ -92,7 +120,7 @@ function Dashboard() {
   return (
     <div ref={dataEndRef}>
       <Header />
-      <div className="flex p-4">
+      <div className="flex mb-4 p-4">
         <div className="flex space-x-4 mr-4">
           <label htmlFor="region-select">Select Region:</label>
           <select
@@ -173,6 +201,12 @@ function Dashboard() {
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
               >
+                Address
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+              >
                 Phone number
               </th>
             </tr>
@@ -181,7 +215,7 @@ function Dashboard() {
             {data.map((item, index) => (
               <tr key={index} className="bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                  {totalCount - data.length + index + 1}
+                  {totalCount > 0 ? totalCount - data.length + index + 1 : index + 1}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                   {item.identifier}
