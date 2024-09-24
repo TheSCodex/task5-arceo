@@ -58,8 +58,12 @@ function Dashboard() {
     const combinedSeed = combineSeedAndPage(seed, pageNumber);
     const generatedData = generator(seed, pageNumber);
 
-    // Reset data when region or seed changes
-    if (prevRegion.current !== region || prevSeed.current !== seed) {
+    // Reset data when region or seed changes, including the page number
+    if (
+      prevRegion.current !== region ||
+      prevSeed.current !== seed ||
+      pageNumber === 1
+    ) {
       setOriginalData(generatedData);
       setData(applyErrors(generatedData, errorRate));
       setTotalCount(generatedData.length);
@@ -150,7 +154,7 @@ function Dashboard() {
             id="error-slider"
             type="range"
             min="0"
-            max="1000"
+            max="10"
             value={errorRate}
             onChange={handleSliderChange}
             className="slider"
